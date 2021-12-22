@@ -11,7 +11,11 @@ struct ContentView: View {
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Russia", "Spain", "UK", "US"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
     @State private var showingScore = false
+    @State private var finishedGame = false
     @State private var scoreTitle = ""
+    @State private var alertMessage = ""
+    @State private var currentScore = 0
+    @State private var levels = 8
     
     var body: some View {
         ZStack {
@@ -57,7 +61,7 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
                 
-                Text("Score: ???")
+                Text("Score: \(currentScore)")
                     .foregroundColor(.white)
                     .font(.title.bold())
                 
@@ -68,23 +72,41 @@ struct ContentView: View {
         .alert(scoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuestion)
         } message: {
-            Text("Your score is ???")
+            Text(alertMessage)
+        }
+        .alert("Game Over", isPresented: $finishedGame) {
+            Button("Play Again", action: resetGame)
+        } message: {
+            Text("You passed \(currentScore)/8 levels")
         }
     }
     
     func flagTapped(_ number: Int) {
         if number == correctAnswer {
             scoreTitle = "Correct"
+            currentScore += 1
+            alertMessage = "Your score is \(currentScore)"
         } else {
             scoreTitle = "Wrong"
+            alertMessage = "That's the flag of \(countries[correctAnswer])"
         }
-        
         showingScore = true
     }
     
     func askQuestion() {
+        levels -= 1
+        if levels == 0 {
+            finishedGame = true
+            return
+        }
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+    }
+    
+    func resetGame() {
+        currentScore = 0
+        levels = 8
+        askQuestion()
     }
     
 }
